@@ -1,18 +1,33 @@
 'use client'
 
-// components/category/CategoryHero.jsx
-// Hero section for /moving, /delivery, /junk-removal pages
-// Matches Muvr screenshot: full-width gradient, centered heading + sub,
-// category tab icons, pickup/dropoff inputs, "See prices" button
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function CategoryHero({ content, categories = [] }) {
+export default function CityHero({ city }) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState(content.slug)
+  const [activeTab, setActiveTab] = useState(city?.categorySlug || 'moving')
   const [pickup, setPickup]   = useState('')
   const [dropoff, setDropoff] = useState('')
+
+  const cityName    = city?.name        || 'Los Angeles'
+  const categorySlug = city?.categorySlug || 'moving'
+
+  const headlines = {
+    moving:        `${cityName} Movers`,
+    delivery:      `${cityName} Delivery`,
+    'junk-removal': `${cityName} Junk Removal`,
+  }
+  const sublines = {
+    moving:        `Book insured, background-checked ${cityName} movers in 60 seconds.\nSame-day availability. Transparent rates. Zero hidden fees.`,
+    delivery:      `Book insured, background-checked ${cityName} delivery drivers in 60 seconds.\nSame-day availability. Transparent rates. Zero hidden fees.`,
+    'junk-removal': `Book insured, background-checked ${cityName} junk removal pros in 60 seconds.\nSame-day availability. Transparent rates. Zero hidden fees.`,
+  }
+
+  const categories = [
+    { slug: 'delivery',      name: 'Deliveries',   icon: '🚚' },
+    { slug: 'junk-removal',  name: 'Junk Removal', icon: '🗑️' },
+    { slug: 'moving',        name: 'Moves',        icon: '🏠' },
+  ]
 
   function handleSeePrices(e) {
     e.preventDefault()
@@ -25,10 +40,8 @@ export default function CategoryHero({ content, categories = [] }) {
     router.push(`/book?${params.toString()}`)
   }
 
-  // Split heading on \n for line breaks
-  const headingLines = content.heroHeading.split('\n')
-  console.log("content coming ;;;;;", content)
-  console.log("heading line ;;;;;;;", headingLines);
+  const headingLines = (headlines[categorySlug] || headlines.moving).split('\n')
+  const subLines     = (sublines[categorySlug]  || sublines.moving).split('\n')
 
   return (
     <section className="cat-hero">
@@ -51,7 +64,14 @@ export default function CategoryHero({ content, categories = [] }) {
         </h1>
 
         {/* Subtitle */}
-        <p className="hero-sub">{content.heroSub}</p>
+        <p className="hero-sub">
+          {subLines.map((line, i) => (
+            <span key={i}>
+              {line}
+              {i < subLines.length - 1 && <br />}
+            </span>
+          ))}
+        </p>
 
         {/* Booking widget */}
         <div className="widget">
@@ -107,8 +127,8 @@ export default function CategoryHero({ content, categories = [] }) {
               See prices
             </button>
           </form>
-        </div>
 
+        </div>
       </div>
 
       <style jsx>{`

@@ -74,7 +74,7 @@ export default async function CategoryPage({ params }) {
       <CategoryHowItWorks />
       <CategoryWhyUs />
       <CategoryPricing />
-      <CategoryCities />
+      <CategoryCities categorySlug={category} />
       <CategoryAlsoFrom />
       <CategoryFaq />
       <CategoryReadyCta />

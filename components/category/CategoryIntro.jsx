@@ -16,6 +16,7 @@ export default function CategoryIntro({ content }) {
           <Link href="/" className="bc-home">Home</Link>
           <span className="bc-sep" aria-hidden="true"> › </span>
           <span className="bc-current">{content.name}</span>
+          <span className="bc-current">{content.cityname ? `/${content.cityname}` : ''}</span>
         </nav>
 
         {/* SEO paragraph — unique per category */}
