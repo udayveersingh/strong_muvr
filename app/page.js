@@ -3,7 +3,7 @@
 // Fetches all data server-side, passes down to section components
 // Each section is its own component file in /components/home/
 
-import { getCategories, getFeaturedCities } from '@/lib/api'
+import { getCategories, getFeaturedCities, getCategoriesWithServices, getStats, getHomePageData } from '@/lib/api'
 import HeroSection from '@/components/home/Herosection'
 import ServicesSection from '@/components/home/Servicessection'
 import HowItWorksSection from '@/components/home/Howitworkssection'
@@ -32,38 +32,43 @@ export const metadata = {
 
 export default async function HomePage() {
   // Both fetches run in parallel — fast
-  const [categories, cities] = await Promise.all([
-    getCategories(),
+  const [categories, cities, stats] = await Promise.all([
+    // getCategories(),
+    getCategoriesWithServices(),
     getFeaturedCities(),
+    getStats(),
+    // getServicesByCategory('delivery'),
   ])
+
+   const data = await getHomePageData();
 
   return (
     <>
       {/* 1. Hero with booking widget */}
-      <HeroSection categories={categories} />
+      <HeroSection categories={categories} heroData={data.hero} />
 
       {/* 4. Trust badges — vetted, insured, flat-rate */}
-      <TrustSection />
+      <TrustSection stats={data.trust_stats} />
 
-        <WhatWeHandleSection />
+      <WhatWeHandleSection categories={categories} heading={data.handle?.heading} introParagraph={data.intro_paragraph} />
       {/* 2. Service cards grid — "Every Type of Delivery, Handled" */}
       {/* <ServicesSection categories={categories} /> */}
 
       {/* 3. How it works — 3 steps */}
-      <HowItWorksSection />
+      <HowItWorksSection howItWorks={data.how_it_works} />
 
-      <DifferenceSection />
+      <DifferenceSection difference={data.difference} />
 
       {/* 6. Customer reviews */}
-      <ReviewsSection />
+      <ReviewsSection reviews={data.reviews} />
 
        {/* 5. City search + featured cities */}
-      <CitiesSection cities={cities} categories={categories} />
+      <CitiesSection cities={data.cities} categories={data.handle?.categories} />
 
       {/* 7. FAQ */}
-      <FaqSection categories={categories} />
+      <FaqSection  faqs={data.faqs} />
 
-      <CtaBannerSection />
+      <CtaBannerSection cta={data.cta} />
       {/* 8. App download CTA */}
       {/* <AppDownloadSection /> */}
     </>

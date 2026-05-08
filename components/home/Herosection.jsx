@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function HeroSection({ categories = [] }) {
+export default function HeroSection({ categories = [], heroData }) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState(categories[0]?.slug || 'delivery')
   const [pickup, setPickup]   = useState('')
@@ -26,15 +26,15 @@ export default function HeroSection({ categories = [] }) {
       <div className="hero-inner">
         {/* Left text */}
         <div className="hero-text">
-          <div className="hero-badge">⚡ Same-day available</div>
+          <div className="hero-badge">{heroData?.badge}</div>
           <h1 className="hero-heading">
-            Moving, Delivery &amp;<br />
+            {/* Moving, Delivery &amp;<br />
             <span className="accent">Junk Removal</span><br />
-            in 60 Seconds
+            in 60 Seconds */}
+            {heroData?.heading}
           </h1>
           <p className="hero-sub">
-            Book vetted, insured pros in 1,000+ cities.
-            See your exact flat-rate price before you confirm.
+            {heroData?.sub}
           </p>
           <div className="trust-row">
             <span>✓ Background-checked pros</span>

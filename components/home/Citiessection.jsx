@@ -1,35 +1,51 @@
 'use client'
 
 // components/home/CitiesSection.jsx
-// Matches screenshot: city name + 3 service buttons per card, 4-col grid
-// Search filters cities live, "Browse All Cities" CTA at bottom
+// Accepts:
+//   cities     — from API: [{ name, slug, state, stateCode }]
+//   categories — from API: [{ name, slug }]
+// Each city card shows city name + one link per category
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 
-// Service button styles — each category gets its own subtle color
-const SERVICE_STYLES = {
-  moving:        { bg: '#ede9fe', color: '#5b21b6', label: 'Moving'       },
-  delivery:      { bg: '#dbeafe', color: '#1d4ed8', label: 'Delivery'     },
-  'junk-removal':{ bg: '#dcfce7', color: '#15803d', label: 'Junk Removal' },
-}
+// Fallback if API not ready
+const FALLBACK_CITIES = [
+  { name: 'Los Angeles',   slug: 'los-angeles-ca',  state: 'California',   stateCode: 'CA' },
+  { name: 'Houston',       slug: 'houston-tx',      state: 'Texas',        stateCode: 'TX' },
+  { name: 'Dallas',        slug: 'dallas-tx',       state: 'Texas',        stateCode: 'TX' },
+  { name: 'Miami',         slug: 'miami-fl',        state: 'Florida',      stateCode: 'FL' },
+  { name: 'New York City', slug: 'new-york-city-ny',state: 'New York',     stateCode: 'NY' },
+  { name: 'Philadelphia',  slug: 'philadelphia-pa', state: 'Pennsylvania', stateCode: 'PA' },
+  { name: 'Chicago',       slug: 'chicago-il',      state: 'Illinois',     stateCode: 'IL' },
+  { name: 'Atlanta',       slug: 'atlanta-ga',      state: 'Georgia',      stateCode: 'GA' },
+  { name: 'Seattle',       slug: 'seattle-wa',      state: 'Washington',   stateCode: 'WA' },
+  { name: 'Phoenix',       slug: 'phoenix-az',      state: 'Arizona',      stateCode: 'AZ' },
+  { name: 'Boston',        slug: 'boston-ma',       state: 'Massachusetts',stateCode: 'MA' },
+  { name: 'Denver',        slug: 'denver-co',       state: 'Colorado',     stateCode: 'CO' },
+]
+
+const FALLBACK_CATEGORIES = [
+  { name: 'Delivery',     slug: 'delivery'      },
+  { name: 'Moving',       slug: 'moving'        },
+  { name: 'Junk Removal', slug: 'junk-removal'  },
+]
 
 export default function CitiesSection({ cities = [], categories = [] }) {
   const [query, setQuery] = useState('')
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return cities
-    const q = query.toLowerCase()
-    return cities.filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.state?.toLowerCase().includes(q)
-    )
-  }, [query, cities])
+  const cityList     = cities.length     ? cities     : FALLBACK_CITIES
+  const categoryList = categories.length ? categories : FALLBACK_CATEGORIES
 
-  // Build service list from categories prop, fallback to defaults
-  const services = categories.length
-    ? categories.map(c => ({ slug: c.slug, label: c.name, ...SERVICE_STYLES[c.slug] }))
-    : Object.entries(SERVICE_STYLES).map(([slug, v]) => ({ slug, ...v }))
+  const filtered = useMemo(() => {
+    if (!query.trim()) return cityList
+    const q = query.toLowerCase()
+    return cityList.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.state?.toLowerCase().includes(q) ||
+      c.stateCode?.toLowerCase().includes(q)
+    )
+  }, [query, cityList])
 
   return (
     <section className="cities-section">
@@ -43,7 +59,7 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           </p>
         </div>
 
-        {/* Search bar */}
+        {/* Search */}
         <div className="search-wrap">
           <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -57,7 +73,7 @@ export default function CitiesSection({ cities = [], categories = [] }) {
             aria-label="Search cities"
           />
           {query && (
-            <button className="clear-btn" onClick={() => setQuery('')} aria-label="Clear search">✕</button>
+            <button className="clear-btn" onClick={() => setQuery('')} aria-label="Clear">✕</button>
           )}
         </div>
 
@@ -69,16 +85,15 @@ export default function CitiesSection({ cities = [], categories = [] }) {
                 {/* City name */}
                 <h3 className="city-name">{city.name}</h3>
 
-                {/* One service button per category */}
-                <div className="service-btns">
-                  {services.map(svc => (
+                {/* One link per category — dynamic from API */}
+                <div className="service-links">
+                  {categoryList.map(cat => (
                     <Link
-                      key={svc.slug}
-                      href={`/${svc.slug}/${city.slug}`}
-                      className="svc-btn"
-                      style={{ '--bg': svc.bg, '--color': svc.color }}
+                      key={cat.slug}
+                      href={`/${cat.slug}/${city.slug}`}
+                      className="service-link"
                     >
-                      {svc.label}
+                      {cat.name}
                     </Link>
                   ))}
                 </div>
@@ -87,18 +102,17 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           </div>
         ) : (
           <div className="no-results">
-            <span aria-hidden="true">🏙️</span>
             <p>No cities found for "<strong>{query}</strong>"</p>
             <button onClick={() => setQuery('')}>Clear search</button>
           </div>
         )}
 
         {/* CTA */}
-        <div className="cities-cta">
-          <Link href="/cities" className="btn-browse">
-            Browse All Cities →
-          </Link>
-        </div>
+        {!query && (
+          <div className="cities-cta">
+            <Link href="/cities" className="btn-browse">Browse All Cities →</Link>
+          </div>
+        )}
 
       </div>
 
@@ -114,7 +128,7 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           padding: 0 24px;
         }
 
-        /* ── Header ── */
+        /* Header */
         .section-header {
           text-align: center;
           margin-bottom: 36px;
@@ -135,7 +149,7 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           margin: 0 auto;
         }
 
-        /* ── Search ── */
+        /* Search */
         .search-wrap {
           position: relative;
           max-width: 520px;
@@ -161,8 +175,8 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           background: #fff;
           color: #1e2139;
           outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s;
           box-shadow: 0 1px 4px rgba(0 0 0 / 0.05);
+          transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .city-search:focus {
@@ -182,32 +196,30 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           color: #9ca3af;
           cursor: pointer;
           font-size: 15px;
-          line-height: 1;
         }
 
-        /* ── Grid ── */
+        /* Grid — 4 columns */
         .cities-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 16px;
-          margin-bottom: 44px;
+          margin-bottom: 40px;
         }
 
-        /* ── City card ── */
+        /* City card */
         .city-card {
           background: #fff;
           border: 1px solid #e5e7eb;
           border-radius: 14px;
-          padding: 20px 18px 18px;
+          padding: 20px 20px 16px;
           display: flex;
-          flex-direction: columns;
           flex-direction: column;
           gap: 12px;
           transition: box-shadow 0.2s, transform 0.2s;
         }
 
         .city-card:hover {
-          box-shadow: 0 6px 24px rgba(0 0 0 / 0.08);
+          box-shadow: 0 6px 20px rgba(0 0 0 / 0.07);
           transform: translateY(-2px);
         }
 
@@ -219,51 +231,49 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           margin: 0;
         }
 
-        /* ── Service buttons ── */
-        .service-btns {
+        /* Service links — stacked vertically */
+        .service-links {
           display: flex;
           flex-direction: column;
-          gap: 7px;
+          gap: 6px;
         }
 
-        .svc-btn {
-          display: block;
-          width: 100%;
-          padding: 8px 12px;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
-          text-decoration: none;
-          text-align: center;
-          background: var(--bg);
-          color: var(--color);
-          transition: opacity 0.15s, transform 0.15s;
+        .service-link {
+          color: #1e2139;
+          font-size: 14px;
+          font-weight: 500;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          text-decoration-color: rgba(30 33 57 / 0.3);
+          transition: color 0.15s, text-decoration-color 0.15s;
         }
 
-        .svc-btn:hover {
-          opacity: 0.82;
-          transform: translateX(2px);
+        .service-link:hover {
+          color: #ffc425;
+          text-decoration-color: #ffc425;
         }
 
-        /* ── No results ── */
+        /* No results */
         .no-results {
           text-align: center;
-          padding: 48px 24px;
+          padding: 40px;
           color: #6b7280;
-          margin-bottom: 44px;
+          margin-bottom: 40px;
         }
 
-        .no-results span { font-size: 40px; display: block; margin-bottom: 12px; }
-        .no-results p   { font-size: 15px; margin-bottom: 16px; }
         .no-results strong { color: #1e2139; }
+
         .no-results button {
-          background: none; border: none;
-          color: #ffc425; font-weight: 700;
-          font-size: 14px; cursor: pointer;
+          display: block;
+          margin: 12px auto 0;
+          background: none;
+          border: none;
+          color: #ffc425;
+          font-weight: 700;
+          cursor: pointer;
         }
 
-        /* ── CTA ── */
+        /* CTA */
         .cities-cta { display: flex; justify-content: center; }
 
         .btn-browse {
@@ -278,26 +288,24 @@ export default function CitiesSection({ cities = [], categories = [] }) {
           padding: 15px 40px;
           border-radius: 999px;
           text-decoration: none;
-          letter-spacing: 0.01em;
-          transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+          transition: background 0.15s, transform 0.1s;
         }
 
         .btn-browse:hover {
           background: #2a2f4a;
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(30 33 57 / 0.2);
         }
 
-        /* ── Responsive ── */
+        /* Responsive */
         @media (max-width: 960px) {
           .cities-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
-        @media (max-width: 680px) {
+        @media (max-width: 640px) {
           .cities-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        @media (max-width: 420px) {
+        @media (max-width: 400px) {
           .cities-grid { grid-template-columns: 1fr; }
         }
       `}</style>
